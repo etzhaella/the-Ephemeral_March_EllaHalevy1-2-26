@@ -1,0 +1,44 @@
+name: Ephemeral Microservice Stack
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t my-fastapi-app:latest .
+
+      - name: Create kind cluster
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: kind-ci
+
+      - name: Load image into kind
+        run: |
+          kind load docker-image my-fastapi-app:latest --name kind-ci
+
+      - name: Install Helm chart
+        run: |
+          helm install my-app ./charts/my-app
+          kubectl get pods
+
+      - name: Apply test Job
+        run: |
+          kubectl apply -f k8s/test-job.yaml
+
+      - name: Wait for Job completion
+        run: |
+          kubectl wait --for=condition=complete job/write-test-job --timeout=180s
+          kubectl logs job/write-test-job

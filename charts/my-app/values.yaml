@@ -1,0 +1,15 @@
+image:
+  repository: my-fastapi-app
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+
+postgres:
+  image: postgres:15-alpine
+  username: postgres
+  password: password
+  database: postgres
+  port: 5432

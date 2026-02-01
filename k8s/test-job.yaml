@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: write-test-job
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: curl
+          image: curlimages/curl:8.7.1
+          args:
+            - /bin/sh
+            - -c
+            - |
+              echo "Sending POST to FastAPI..."
+              curl -v -X POST \
+                -H "Content-Type: application/json" \
+                -d '{"message": "hello-from-job"}' \
+                http://my-app:8000/write
